@@ -1,4 +1,3 @@
-
 # Eventify - Full-Stack MERN Event Management & RSVP System
 
 A complete, full-stack event management system built with the MERN stack (MongoDB, Express.js, React, Node.js). This application allows users to create events, send email invitations, manage RSVPs, and check-in attendees using a unique QR code system. It follows the Model-View-Controller (MVC) architectural pattern for a clean and scalable codebase.
@@ -166,6 +165,50 @@ EMAIL_PASS=your_app_specific_password # NOT your regular Gmail password
 4. **RSVP as a Guest**: Click the link in your email to confirm or decline the invitation.
 5. **Check-in Attendees**: On the day of the event, use the QR scanner on the event details page to scan a guest's QR code (sent in their reminder email) to mark them as checked-in.
 6. **View Dashboard**: See all your events and their stats on your personal dashboard.
+
+
+## OUTPUT SCREENSHOTS
+### Landing Page
+![Landing Page](OUTPUT/landing.png)
+
+### Registration Page
+![Registration Page](OUTPUT/register.png)
+
+### Welcome Email
+![Welcome email](OUTPUT/welcome_email.png)
+
+### Verification Email
+![Verification Email](OUTPUT/verification_email.png)
+
+### Login Page
+![Login Page](OUTPUT/login.png)
+
+### User Profile
+![User Profile](OUTPUT/profile.png)
+
+### Dashboard
+![Dashboard](OUTPUT/dashboard.png)
+
+### Create Event
+![Create Event Page](OUTPUT/createEvent.png)
+
+### Invitation Email
+![Invitation email](OUTPUT/invitation.png)
+
+### Invitation confirmation form from email
+![confirmation email from](OUTPUT/invitationPageFromMail.png)
+
+### Attendee's Event view
+![Attendee's view](OUTPUT/attendeeEventView.png)
+
+### View at organizer post confirmation
+![View after confirmation](OUTPUT/inviteAccepted.png)
+
+### Checkin scanner
+![Checkin Scanner](OUTPUT/checkinScanner.png)
+
+### Profile and logout options
+![Profile and logout options](OUTPUT/profile_logout.png)
 
 ## 🤝 Contributing
 

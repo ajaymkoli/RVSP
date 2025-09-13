@@ -17,16 +17,26 @@ const EventDetails = () => {
   const [sending, setSending] = useState(false);
   const [qrCodeImage, setQrCodeImage] = useState('');
   const [checkInStats, setCheckInStats] = useState(null);
+  const [myInvitation, setMyInvitation] = useState(null);
 
   useEffect(() => {
     fetchEventDetails();
   }, [id]);
 
+  const isOrganizer = event && event.creator && event.creator._id === user.id;
+
+  useEffect(() => {
+    if (event && event.creator && !isOrganizer) {
+      fetchMyInvitation();
+    }
+  }, [event, isOrganizer]);
+
+
   const fetchEventDetails = async () => {
     try {
       const response = await eventsAPI.getEvent(id);
       setEvent(response.data.data);
-      
+
       // If user is the event creator, fetch additional data
       if (response.data.data.creator._id === user.id) {
         fetchInvitations();
@@ -71,7 +81,7 @@ const EventDetails = () => {
   const handleSendInvitations = async (e) => {
     e.preventDefault();
     setSending(true);
-    
+
     try {
       const emailList = emails.split(',').map(email => email.trim()).filter(email => email);
       await invitationsAPI.sendInvitations(id, emailList);
@@ -83,6 +93,47 @@ const EventDetails = () => {
       setError(error.response?.data?.error || 'Error sending invitations');
     } finally {
       setSending(false);
+    }
+  };
+
+  const fetchMyInvitation = async () => {
+    try {
+      // First, get all invitations for the event
+      const response = await invitationsAPI.getEventInvitations(id);
+      const invitations = response.data.data;
+
+      // Find the invitation for the current user
+      const userInvitation = invitations.find(
+        inv => inv.guestId._id === user.id
+      );
+
+      setMyInvitation(userInvitation);
+    } catch (error) {
+      console.error('Error fetching user invitation:', error);
+    }
+  };
+
+  const handleConfirm = async () => {
+    try {
+      await invitationsAPI.handleRSVP(myInvitation._id, 'confirmed');
+      // Refresh the data
+      fetchEventDetails();
+      fetchMyInvitation();
+      alert('Attendance confirmed!');
+    } catch (error) {
+      setError(error.response?.data?.error || 'Error confirming attendance');
+    }
+  };
+
+  const handleDecline = async () => {
+    try {
+      await invitationsAPI.handleRSVP(myInvitation._id, 'declined');
+      // Refresh the data
+      fetchEventDetails();
+      fetchMyInvitation();
+      alert('Attendance declined.');
+    } catch (error) {
+      setError(error.response?.data?.error || 'Error declining invitation');
     }
   };
 
@@ -119,8 +170,6 @@ const EventDetails = () => {
       </div>
     );
   }
-
-  const isOrganizer = event.creator._id === user.id;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -279,12 +328,11 @@ const EventDetails = () => {
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            invitation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          <span className={`px-2 py-1 text-xs rounded-full ${invitation.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                             invitation.status === 'declined' ? 'bg-red-100 text-red-800' :
-                            invitation.status === 'checked-in' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
+                              invitation.status === 'checked-in' ? 'bg-blue-100 text-blue-800' :
+                                'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {invitation.status}
                           </span>
                           {invitation.respondedAt && (
@@ -313,14 +361,26 @@ const EventDetails = () => {
                 <p className="text-sm text-gray-500 mb-4">
                   You've been invited to this event by {event.creator.username}
                 </p>
-                <div className="flex justify-center space-x-4">
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                    Confirm Attendance
-                  </button>
-                  <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
-                    Decline
-                  </button>
-                </div>
+                {myInvitation && myInvitation.status === 'confirmed' ? (
+                  <p className="text-green-600 font-medium">You've confirmed your attendance!</p>
+                ) : myInvitation && myInvitation.status === 'declined' ? (
+                  <p className="text-red-600 font-medium">You've declined this invitation.</p>
+                ) : (
+                  <div className="flex justify-center space-x-4">
+                    <button
+                      onClick={handleConfirm}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                    >
+                      Confirm Attendance
+                    </button>
+                    <button
+                      onClick={handleDecline}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -16,6 +16,7 @@ import Navbar from './components/common/Navbar';
 import Profile from './pages/Profile';
 import AttendeeQRCode from './pages/AttendeeQRCode';
 import Landing from './pages/Landing';
+import CreateEvent from './pages/CreateEvent';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="/checkin/:eventId" element={<PrivateRoute> <CheckIn /></PrivateRoute>} />
             <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/events/:eventId/qr-code" element={<PrivateRoute><AttendeeQRCode /></PrivateRoute>} />
+            <Route path="/create-event" element={<PrivateRoute><CreateEvent /></PrivateRoute>} />
           </Routes>
         </div>
       </Router>
