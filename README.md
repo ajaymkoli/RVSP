@@ -1,4 +1,4 @@
-# Eventify - Full-Stack MERN Event Management & RSVP System
+# Event Manager - Full-Stack MERN Event Management & RSVP System
 
 A complete, full-stack event management system built with the MERN stack (MongoDB, Express.js, React, Node.js). This application allows users to create events, send email invitations, manage RSVPs, and check-in attendees using a unique QR code system. It follows the Model-View-Controller (MVC) architectural pattern for a clean and scalable codebase.
 
