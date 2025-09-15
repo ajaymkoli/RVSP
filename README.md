@@ -196,7 +196,7 @@ EMAIL_PASS=your_app_specific_password # NOT your regular Gmail password
 ![Invitation email](OUTPUT/invitation.png)
 
 ### Invitation confirmation form from email
-![confirmation email from](OUTPUT/invitationPageFromMail.png)
+![confirmation email](OUTPUT/invitationPageFromMail.png)
 
 ### Attendee's Event view
 ![Attendee's view](OUTPUT/attendeeEventView.png)
