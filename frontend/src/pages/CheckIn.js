@@ -9,6 +9,7 @@ const CheckIn = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [manualToken, setManualToken] = useState('');
 
   const handleScan = async (data) => {
     if (!data || loading) return;
@@ -18,11 +19,11 @@ const CheckIn = () => {
 
     try {
       console.log('Raw scanned data:', data);
-      
+
       // The QR scanner is returning an array of objects
       // We need to extract the rawValue from the first object
       let scannedText;
-      
+
       if (Array.isArray(data) && data.length > 0) {
         // Extract the rawValue from the first object in the array
         scannedText = data[0].rawValue;
@@ -42,7 +43,7 @@ const CheckIn = () => {
       // The URL format is: http://localhost:3000/checkin/attendee/{token}
       const urlParts = scannedText.split('/');
       const token = urlParts[urlParts.length - 1];
-      
+
       if (!token) {
         throw new Error('Could not extract token from QR code');
       }
@@ -120,29 +121,36 @@ const CheckIn = () => {
         <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
           <h2 className="text-lg font-medium text-gray-900 mb-2">Manual Check-in</h2>
           <p className="text-sm text-gray-500 mb-4">
-            If you're having trouble with the scanner, you can manually enter the check-in details.
+            Enter the attendee's token below or scan their QR code.
           </p>
-          <button
-            onClick={async () => {
-              const token = prompt('Please enter the attendee token:');
-              
-              if (token) {
-                try {
-                  setLoading(true);
-                  const response = await checkinAPI.checkInAttendee(token);
-                  setResult(response.data);
-                  setError('');
-                } catch (error) {
-                  setError(error.response?.data?.error || error.message || 'Error checking in attendee');
-                } finally {
-                  setLoading(false);
+          <div className="flex">
+            <input
+              type="text"
+              placeholder="Enter attendee token"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              onChange={(e) => setManualToken(e.target.value)}
+            />
+            <button
+              onClick={async () => {
+                if (manualToken) {
+                  try {
+                    setLoading(true);
+                    const response = await checkinAPI.checkInAttendee(manualToken);
+                    setResult(response.data);
+                    setError('');
+                    setManualToken('');
+                  } catch (error) {
+                    setError(error.response?.data?.error || error.message || 'Error checking in attendee');
+                  } finally {
+                    setLoading(false);
+                  }
                 }
-              }
-            }}
-            className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-          >
-            Manual Check-in
-          </button>
+              }}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700"
+            >
+              Check In
+            </button>
+          </div>
         </div>
       </div>
     </div>

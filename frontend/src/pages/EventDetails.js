@@ -352,7 +352,7 @@ const EventDetails = () => {
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
               <div className="text-center">
-                {myInvitation === null ? (
+                {!myInvitation ? (
                   <p className="text-gray-500">Loading invitation details...</p>
                 ) : myInvitation ? (
                   <>
@@ -365,6 +365,16 @@ const EventDetails = () => {
                       <div className="mb-4">
                         <h3 className="text-md font-medium text-gray-900 mb-2">Your Check-in QR Code</h3>
                         <img src={qrCodeImage} alt="Personal QR Code" className="mx-auto h-48 w-48" />
+
+                        {/* Display the token below the QR code */}
+                        <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+                          <p className="text-sm font-medium text-gray-700 mb-1">Your Check-in Token:</p>
+                          <p className="text-xs font-mono text-gray-900 break-all">{myInvitation.token}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Provide this token to event staff if QR code scanning is unavailable
+                          </p>
+                        </div>
+
                         <p className="mt-2 text-sm text-gray-500">
                           Show this code at the event for check-in
                         </p>
