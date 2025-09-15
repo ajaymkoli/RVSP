@@ -6,7 +6,9 @@ const QRScanner = ({ onScan, onError }) => {
 
   const handleScan = (result) => {
     if (result) {
-      onScan(result);
+      // Extract the text from the result object
+      const scannedText = result.text || result.rawValue || JSON.stringify(result);
+      onScan(scannedText);
     }
   };
 

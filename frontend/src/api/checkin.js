@@ -17,12 +17,14 @@ api.interceptors.request.use((config) => {
 });
 
 export const checkinAPI = {
-  // Check in an attendee
-  checkInAttendee: (eventId, qrCodeData, userId) => 
-    api.post(`/events/${eventId}/checkin/${qrCodeData}`, { userId }),
+  // Scan QR code
+  scanQRCode: (eventId, qrCodeData) => api.post('/scan-qr', { eventId, qrCodeData }),
   
-  // Get check-in statistics for an event
-  getCheckInStats: (eventId) => api.get(`/events/${eventId}/stats`),
+  // Get check-in statistics
+  getCheckInStats: (eventId) => api.get(`/stats/${eventId}`),
+  
+  // Check-in attendee by token
+  checkInAttendee: (token) => api.post(`/attendee/${token}`),
 };
 
 export default checkinAPI;

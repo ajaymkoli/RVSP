@@ -216,3 +216,54 @@ exports.getInvitationByToken = async (req, res) => {
     });
   }
 };
+
+// Get user's own invitation for an event
+exports.getMyInvitation = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Find the event
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        error: 'Event not found'
+      });
+    }
+
+    // Check if user is invited to this event
+    const isAttendee = event.attendees.some(
+      attendee => attendee.guestId.toString() === req.user.id
+    );
+
+    if (!isAttendee) {
+      return res.status(404).json({
+        success: false,
+        error: 'You are not invited to this event'
+      });
+    }
+
+    // Find the invitation
+    const invitation = await Invitation.findOne({
+      eventId,
+      guestId: req.user.id
+    }).populate('guestId', 'username email');
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invitation not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: invitation
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};

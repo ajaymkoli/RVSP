@@ -17,26 +17,43 @@ const CheckIn = () => {
     setScanning(false);
 
     try {
-      // The Scanner component returns the scanned data directly
-      // Parse the QR code data (should be in format: /checkin/eventId/qrCodeData)
-      const parts = data.split('/');
-      const qrCodeData = parts[parts.length - 1];
-
-      // For now, we'll use a placeholder userId
-      // In a real implementation, you'd need to get the userId from the QR code or user input
-      const userId = prompt('Please enter the user ID to check in:');
-
-      if (!userId) {
-        setError('User ID is required');
-        setLoading(false);
-        setScanning(true);
-        return;
+      console.log('Raw scanned data:', data);
+      
+      // The QR scanner is returning an array of objects
+      // We need to extract the rawValue from the first object
+      let scannedText;
+      
+      if (Array.isArray(data) && data.length > 0) {
+        // Extract the rawValue from the first object in the array
+        scannedText = data[0].rawValue;
+      } else if (typeof data === 'object' && data.rawValue) {
+        // Handle object format
+        scannedText = data.rawValue;
+      } else if (typeof data === 'string') {
+        // Handle string format
+        scannedText = data;
+      } else {
+        throw new Error('Unrecognized QR code format');
       }
 
-      const response = await checkinAPI.checkInAttendee(eventId, qrCodeData, userId);
+      console.log('Extracted text:', scannedText);
+
+      // Extract the token from the URL
+      // The URL format is: http://localhost:3000/checkin/attendee/{token}
+      const urlParts = scannedText.split('/');
+      const token = urlParts[urlParts.length - 1];
+      
+      if (!token) {
+        throw new Error('Could not extract token from QR code');
+      }
+
+      console.log('Extracted token:', token);
+
+      // Use the token to check in the attendee
+      const response = await checkinAPI.checkInAttendee(token);
       setResult(response.data);
     } catch (error) {
-      setError(error.response?.data?.error || 'Error checking in attendee');
+      setError(error.response?.data?.error || error.message || 'Error checking in attendee');
       console.error('Check-in error:', error);
     } finally {
       setLoading(false);
@@ -106,12 +123,20 @@ const CheckIn = () => {
             If you're having trouble with the scanner, you can manually enter the check-in details.
           </p>
           <button
-            onClick={() => {
-              const userId = prompt('Please enter the user ID:');
-              const qrCodeData = prompt('Please enter the QR code data:');
-
-              if (userId && qrCodeData) {
-                handleScan(`/checkin/${eventId}/${qrCodeData}`);
+            onClick={async () => {
+              const token = prompt('Please enter the attendee token:');
+              
+              if (token) {
+                try {
+                  setLoading(true);
+                  const response = await checkinAPI.checkInAttendee(token);
+                  setResult(response.data);
+                  setError('');
+                } catch (error) {
+                  setError(error.response?.data?.error || error.message || 'Error checking in attendee');
+                } finally {
+                  setLoading(false);
+                }
               }
             }}
             className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"

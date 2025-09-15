@@ -1,11 +1,11 @@
 const Event = require('../models/Event');
 const Invitation = require('../models/Invitation');
 
-// Check in an attendee using QR code
-exports.checkInAttendee = async (req, res) => {
+// Scan QR code for event check-in
+exports.scanQRCode = async (req, res) => {
   try {
-    const { eventId, qrCodeData } = req.params;
-    const { userId } = req.body;
+    const { qrCodeData } = req.body;
+    const { eventId } = req.params;
 
     // Find the event
     const event = await Event.findById(eventId);
@@ -16,7 +16,7 @@ exports.checkInAttendee = async (req, res) => {
       });
     }
 
-    // Verify QR code data matches the event
+    // Verify the QR code data matches the event
     if (event.qrCodeData !== qrCodeData) {
       return res.status(400).json({
         success: false,
@@ -24,60 +24,96 @@ exports.checkInAttendee = async (req, res) => {
       });
     }
 
-    // Check if user is the event creator
-    if (event.creator.toString() !== req.user.id) {
-      return res.status(401).json({
-        success: false,
-        error: 'Not authorized to check in attendees for this event'
-      });
-    }
-
-    // Find the attendee in the event
-    const attendee = event.attendees.find(
-      a => a.guestId.toString() === userId
+    // Find the current user in the attendees list
+    const attendeeIndex = event.attendees.findIndex(
+      a => a.guestId.toString() === req.user.id
     );
 
-    if (!attendee) {
+    if (attendeeIndex === -1) {
       return res.status(404).json({
         success: false,
-        error: 'Attendee not found for this event'
-      });
-    }
-
-    // Check if already checked in
-    if (attendee.checkedIn) {
-      return res.status(400).json({
-        success: false,
-        error: 'Attendee already checked in'
+        error: 'You are not invited to this event'
       });
     }
 
     // Update check-in status
-    attendee.checkedIn = true;
-    attendee.checkedInAt = new Date();
+    event.attendees[attendeeIndex].checkedIn = true;
+    event.attendees[attendeeIndex].checkedInAt = new Date();
     
-    // Update invitation status if exists
-    await Invitation.findOneAndUpdate(
-      { eventId, guestId: userId },
-      { status: 'checked-in', respondedAt: new Date() }
-    );
-
     await event.save();
 
     res.json({
       success: true,
-      message: 'Attendee checked in successfully',
-      data: attendee
+      message: 'Check-in successful',
+      data: event.attendees[attendeeIndex]
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       error: error.message
     });
   }
 };
 
-// Get check-in statistics for an event
+// Check-in attendee by token (for organizer scanning attendee QR codes)
+exports.checkInAttendee = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Find the invitation by token
+    const invitation = await Invitation.findOne({ token })
+      .populate('eventId')
+      .populate('guestId');
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid QR code'
+      });
+    }
+
+    // Check if the invitation is confirmed
+    if (invitation.status !== 'confirmed') {
+      return res.status(400).json({
+        success: false,
+        error: 'Attendance not confirmed'
+      });
+    }
+
+    // Update the invitation status to checked-in
+    invitation.status = 'checked-in';
+    invitation.checkedInAt = new Date();
+    await invitation.save();
+
+    // Update the event attendee status
+    const event = await Event.findById(invitation.eventId._id);
+    const attendee = event.attendees.find(
+      a => a.guestId.toString() === invitation.guestId._id.toString()
+    );
+
+    if (attendee) {
+      attendee.checkedIn = true;
+      attendee.checkedInAt = new Date();
+      await event.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Check-in successful',
+      data: {
+        attendee: invitation.guestId,
+        event: invitation.eventId
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// Get check-in statistics
 exports.getCheckInStats = async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -90,29 +126,20 @@ exports.getCheckInStats = async (req, res) => {
       });
     }
 
-    // Check if user is the event creator
-    if (event.creator.toString() !== req.user.id) {
-      return res.status(401).json({
-        success: false,
-        error: 'Not authorized to view stats for this event'
-      });
-    }
-
     const totalAttendees = event.attendees.length;
     const checkedInAttendees = event.attendees.filter(a => a.checkedIn).length;
-    const confirmedAttendees = event.attendees.filter(a => a.rsvpStatus === 'confirmed').length;
+    const checkInRate = totalAttendees > 0 ? (checkedInAttendees / totalAttendees) * 100 : 0;
 
     res.json({
       success: true,
       data: {
         totalAttendees,
         checkedInAttendees,
-        confirmedAttendees,
-        checkInRate: totalAttendees > 0 ? (checkedInAttendees / totalAttendees) * 100 : 0
+        checkInRate
       }
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       error: error.message
     });

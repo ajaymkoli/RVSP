@@ -23,14 +23,27 @@ const EventDetails = () => {
     fetchEventDetails();
   }, [id]);
 
+  useEffect(() => {
+    if (event && !isOrganizer) {
+      fetchMyInvitation();
+    }
+  }, [event]);
+
   const isOrganizer = event && event.creator && event.creator._id === user.id;
 
   useEffect(() => {
-    if (event && event.creator && !isOrganizer) {
-      fetchMyInvitation();
+    if (event) {
+      if (isOrganizer) {
+        // Generate QR code for event check-in (organizer view)
+        const qrCodeUrl = `${window.location.origin}/checkin/${id}`;
+        setQrCodeImage(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}`);
+      } else if (myInvitation && myInvitation.status === 'confirmed') {
+        // Generate QR code for attendee check-in
+        const attendeeQrCodeUrl = `${window.location.origin}/checkin/attendee/${myInvitation.token}`;
+        setQrCodeImage(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(attendeeQrCodeUrl)}`);
+      }
     }
-  }, [event, isOrganizer]);
-
+  }, [event, isOrganizer, myInvitation, id]);
 
   const fetchEventDetails = async () => {
     try {
@@ -41,7 +54,6 @@ const EventDetails = () => {
       if (response.data.data.creator._id === user.id) {
         fetchInvitations();
         fetchCheckInStats();
-        fetchQRCode();
       }
     } catch (error) {
       setError(error.response?.data?.error || 'Error fetching event details');
@@ -56,16 +68,6 @@ const EventDetails = () => {
       setInvitations(response.data.data);
     } catch (error) {
       console.error('Error fetching invitations:', error);
-    }
-  };
-
-  const fetchQRCode = async () => {
-    try {
-      // Generate QR code for event check-in
-      const qrCodeUrl = `${window.location.origin}/checkin/${id}`;
-      setQrCodeImage(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}`);
-    } catch (error) {
-      console.error('Error fetching QR code:', error);
     }
   };
 
@@ -98,18 +100,12 @@ const EventDetails = () => {
 
   const fetchMyInvitation = async () => {
     try {
-      // First, get all invitations for the event
-      const response = await invitationsAPI.getEventInvitations(id);
-      const invitations = response.data.data;
-
-      // Find the invitation for the current user
-      const userInvitation = invitations.find(
-        inv => inv.guestId._id === user.id
-      );
-
-      setMyInvitation(userInvitation);
+      // Use the new endpoint to get the user's own invitation
+      const response = await invitationsAPI.getMyInvitation(id);
+      setMyInvitation(response.data.data);
     } catch (error) {
       console.error('Error fetching user invitation:', error);
+      setMyInvitation(null);
     }
   };
 
@@ -117,7 +113,6 @@ const EventDetails = () => {
     try {
       await invitationsAPI.handleRSVP(myInvitation._id, 'confirmed');
       // Refresh the data
-      fetchEventDetails();
       fetchMyInvitation();
       alert('Attendance confirmed!');
     } catch (error) {
@@ -129,7 +124,6 @@ const EventDetails = () => {
     try {
       await invitationsAPI.handleRSVP(myInvitation._id, 'declined');
       // Refresh the data
-      fetchEventDetails();
       fetchMyInvitation();
       alert('Attendance declined.');
     } catch (error) {
@@ -358,28 +352,48 @@ const EventDetails = () => {
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
               <div className="text-center">
-                <p className="text-sm text-gray-500 mb-4">
-                  You've been invited to this event by {event.creator.username}
-                </p>
-                {myInvitation && myInvitation.status === 'confirmed' ? (
-                  <p className="text-green-600 font-medium">You've confirmed your attendance!</p>
-                ) : myInvitation && myInvitation.status === 'declined' ? (
-                  <p className="text-red-600 font-medium">You've declined this invitation.</p>
+                {myInvitation === null ? (
+                  <p className="text-gray-500">Loading invitation details...</p>
+                ) : myInvitation ? (
+                  <>
+                    <p className="text-sm text-gray-500 mb-4">
+                      You've been invited to this event by {event.creator.username}
+                    </p>
+
+                    {/* Add QR code for attendees */}
+                    {myInvitation.status === 'confirmed' && qrCodeImage && (
+                      <div className="mb-4">
+                        <h3 className="text-md font-medium text-gray-900 mb-2">Your Check-in QR Code</h3>
+                        <img src={qrCodeImage} alt="Personal QR Code" className="mx-auto h-48 w-48" />
+                        <p className="mt-2 text-sm text-gray-500">
+                          Show this code at the event for check-in
+                        </p>
+                      </div>
+                    )}
+
+                    {myInvitation.status === 'confirmed' ? (
+                      <p className="text-green-600 font-medium">You've confirmed your attendance!</p>
+                    ) : myInvitation.status === 'declined' ? (
+                      <p className="text-red-600 font-medium">You've declined this invitation.</p>
+                    ) : (
+                      <div className="flex justify-center space-x-4">
+                        <button
+                          onClick={handleConfirm}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                        >
+                          Confirm Attendance
+                        </button>
+                        <button
+                          onClick={handleDecline}
+                          className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className="flex justify-center space-x-4">
-                    <button
-                      onClick={handleConfirm}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-                    >
-                      Confirm Attendance
-                    </button>
-                    <button
-                      onClick={handleDecline}
-                      className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-                    >
-                      Decline
-                    </button>
-                  </div>
+                  <p className="text-gray-500">You are not invited to this event.</p>
                 )}
               </div>
             </div>

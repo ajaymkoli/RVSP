@@ -34,6 +34,9 @@ const Navbar = () => {
                 <Link to="/dashboard" className={`${isActive('/dashboard')} font-medium`}>
                   Dashboard
                 </Link>
+                <Link to="/invitations" className={`${isActive('/invitations')} font-medium`}>
+                  Invitations
+                </Link>
                 <Link to="/create-event" className={`${isActive('/create-event')} font-medium`}>
                   Create Event
                 </Link>
@@ -91,6 +94,9 @@ const Navbar = () => {
                 <>
                   <Link to="/dashboard" className="block px-3 py-2 text-gray-700 hover:bg-indigo-100 rounded-md">
                     Dashboard
+                  </Link>
+                  <Link to="/invitations" className="block px-3 py-2 text-gray-700 hover:bg-indigo-100 rounded-md">
+                    Invitations
                   </Link>
                   <Link to="/create-event" className="block px-3 py-2 text-gray-700 hover:bg-indigo-100 rounded-md">
                     Create Event

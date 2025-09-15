@@ -1,16 +1,11 @@
 const express = require('express');
-const {
-  checkInAttendee,
-  getCheckInStats
-} = require('../controllers/checkinController');
 const { protect } = require('../middleware/auth');
+const { scanQRCode, getCheckInStats, checkInAttendee } = require('../controllers/checkinController');
 
 const router = express.Router();
 
-// All routes are protected
-router.use(protect);
-
-router.post('/events/:eventId/checkin/:qrCodeData', checkInAttendee);
-router.get('/events/:eventId/stats', getCheckInStats);
+router.post('/scan-qr', protect, scanQRCode);
+router.get('/stats/:eventId', protect, getCheckInStats);
+router.post('/attendee/:token', protect, checkInAttendee);
 
 module.exports = router;

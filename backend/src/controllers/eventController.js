@@ -8,7 +8,7 @@ exports.createEvent = async (req, res) => {
   try {
     const { title, description, location, date } = req.body;
     
-    // Generate unique QR code data first
+    // Generate unique QR code data
     const qrCodeData = crypto.randomBytes(20).toString('hex');
     
     const event = await Event.create({
@@ -17,15 +17,8 @@ exports.createEvent = async (req, res) => {
       description,
       location,
       date,
-      qrCodeData // Include the QR code data
+      qrCodeData
     });
-    
-    // Generate QR code image
-    const { qrCodeDataUrl } = await generateEventQRCode(event._id, event.qrCodeData);
-    
-    // Update the event with the QR code image
-    event.qrCodeImage = qrCodeDataUrl;
-    await event.save();
     
     // Populate creator details
     await event.populate('creator', 'username email');

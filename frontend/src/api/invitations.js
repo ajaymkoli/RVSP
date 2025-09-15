@@ -20,8 +20,11 @@ export const invitationsAPI = {
   // Send invitations to guests
   sendInvitations: (eventId, emails) => api.post(`/events/${eventId}/invite`, { emails }),
   
-  // Get invitations for an event
+  // Get invitations for an event (organizer only)
   getEventInvitations: (eventId) => api.get(`/events/${eventId}/invitations`),
+  
+  // Get user's own invitation for an event
+  getMyInvitation: (eventId) => api.get(`/events/${eventId}/my-invitation`),
   
   // Handle RSVP response
   handleRSVP: (invitationId, status) => api.put(`/${invitationId}/rsvp`, { status }),

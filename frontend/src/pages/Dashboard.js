@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { eventsAPI } from '../api/events';
+import { useAuth } from '../context/AuthContext'; // Import the authentication context
 
 const Dashboard = () => {
+  const { user } = useAuth(); // Get the user from the authentication context
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +16,9 @@ const Dashboard = () => {
   const fetchEvents = async () => {
     try {
       const response = await eventsAPI.getEvents();
-      setEvents(response.data.data);
+      // Filter events where user is the creator, not just an attendee
+      const createdEvents = response.data.data.filter(event => event.creator._id === user.id);
+      setEvents(createdEvents);
     } catch (error) {
       setError(error.response?.data?.error || 'Error fetching events');
     } finally {
@@ -72,7 +76,7 @@ const Dashboard = () => {
                   <div className="mt-4">
                     <div className="flex items-center text-sm text-gray-500">
                       <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                       {event.location}
                     </div>
@@ -84,7 +88,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-2">
                       <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-极狐 6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                       {event.attendees.length} attendees
                     </div>
