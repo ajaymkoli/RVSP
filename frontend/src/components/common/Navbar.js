@@ -23,7 +23,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to={user ? "/dashboard" : "/"} className="text-indigo-600 font-bold text-xl">
-              Event Manager
+              EventFlow
             </Link>
           </div>
 

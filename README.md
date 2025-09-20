@@ -1,4 +1,4 @@
-# Event Manager - Full-Stack MERN Event Management & RSVP System
+# EventFlow - Full-Stack MERN Event Management & RSVP System
 
 ![EventFlow Banner](OUTPUT/landing.png)
 

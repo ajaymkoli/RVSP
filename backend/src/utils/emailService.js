@@ -15,7 +15,7 @@ exports.sendThankYouEmail = async (email, username) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Welcome to Event Manager!',
+      subject: 'Welcome to EventFlow!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4F46E5;">Welcome to Event Manager, ${username}!</h2>
@@ -44,7 +44,7 @@ exports.sendPasswordResetEmail = async (email, resetToken) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Password Reset Request - Event Manager',
+      subject: 'Password Reset Request - EventFlow',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4F46E5;">Password Reset Request</h2>
@@ -76,7 +76,7 @@ exports.sendVerificationEmail = async (email, verificationToken) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Verify Your Email - Event Manager',
+      subject: 'Verify Your Email - EventFlow',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4F46E5;">Verify Your Email Address</h2>
